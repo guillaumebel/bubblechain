@@ -11,7 +11,7 @@ static Bubble* bubble;
 static gboolean
 main_loop (gpointer data)
 {
-  if ( 
+  
 }
 
 int

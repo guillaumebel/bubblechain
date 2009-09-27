@@ -4,14 +4,11 @@
 
 #include "bubble.h"
 
-#define BUBBLE_R 32
-#define SCREEN_WIDTH 680
-#define SCREEN_HEIGHT 480
-
 Bubble*
-bubblechain_bubble_new (void)
+bubblechain_bubble_new (gint num)
 {
   Bubble *bubble = g_new (Bubble*, 1);
+  bubble->number = num;
   bubble->radius = BUBBLE_R;
   bubble->actor = clutter_cairo_texture_new (BUBBLE_R*2, BUBBLE_R*2);
   bubble->x = rand () % SCREEN_WIDTH - BUBBLE_R;
@@ -19,7 +16,6 @@ bubblechain_bubble_new (void)
 
   cairo_t *cr;
   cairo_pattern_t *pattern;
-  
   cr = clutter_cairo_texture_create (CLUTTER_CAIRO_TEXTURE (bubble->actor));
   
   cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
@@ -58,6 +54,15 @@ bubblechain_bubble_new (void)
 
   clutter_actor_set_position (CLUTTER_ACTOR (bubble->actor),
                               bubble->x, bubble->y);
-  
+  srand (time (NULL));
+  float dir = ((float) (rand () % 4500) / 100) * (M_PI / 360);
+  if (bubble->number % 2 != 0) {
+    bubble->hspeed = 3 * sin (dir);
+    bubble->vspeed = 3 * cos (dir);
+  } else {
+    bubble->hspeed = 3 * cos (dir);
+    bubble->vspeed = 3 * sin (dir);
+  }
+
   return bubble;
 }

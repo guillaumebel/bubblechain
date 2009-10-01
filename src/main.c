@@ -74,16 +74,15 @@ main (gint argc, gchar **argv)
   clutter_widget = gtk_clutter_embed_new ();
   stage = gtk_clutter_embed_get_stage (GTK_CLUTTER_EMBED (clutter_widget));
   clutter_stage_set_color (CLUTTER_STAGE (stage), &stage_color);
-  //clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
+  clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
 
-  gint num = 50;
+  gint num = 65;
   load_bubbles (num);
     
   gtk_container_add (GTK_CONTAINER (window), clutter_widget);
 
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
                                CLUTTER_ACTOR (group));
-
   
   main_id = g_timeout_add (20, (GSourceFunc) main_loop, NULL);
 

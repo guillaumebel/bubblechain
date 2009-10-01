@@ -67,7 +67,7 @@ bubblechain_bubble_new (gint num)
   bubble->number = num;
   bubble->radius = BUBBLE_R;
   bubble->actor = create_bubble (num);
-
+  clutter_actor_get_position (bubble->actor, &bubble->x, &bubble->y);
   srand (time (NULL) + num);
   float dir = ((float) (rand () % 4500) / 100) * (M_PI / 360);
   if (bubble->number % 2 != 0) {

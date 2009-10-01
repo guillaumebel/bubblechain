@@ -68,7 +68,7 @@ main (gint argc, gchar **argv)
   clutter_stage_set_color (CLUTTER_STAGE (stage), &stage_color);
   //clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
 
-  gint num = 5;
+  gint num = 50;
   load_bubbles (num);
     
   gtk_container_add (GTK_CONTAINER (window), clutter_widget);

@@ -17,8 +17,6 @@ create_bubble (int num)
   srand (time (NULL) + num);
   y = rand () % 480;
 
-  printf ("x=%d,y=%d \n", x, y);
-
   cairo_t *cr;
   cairo_pattern_t *pattern;
   cr = clutter_cairo_texture_create (CLUTTER_CAIRO_TEXTURE (actor));
@@ -70,7 +68,7 @@ bubblechain_bubble_new (gint num)
   bubble->radius = BUBBLE_R;
   bubble->actor = create_bubble (num);
 
-  srand (time (NULL));
+  srand (time (NULL) + num);
   float dir = ((float) (rand () % 4500) / 100) * (M_PI / 360);
   if (bubble->number % 2 != 0) {
     bubble->hspeed = 2 * sin (dir);

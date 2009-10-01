@@ -5,7 +5,7 @@
 
 #define SCREEN_WIDTH 680
 #define SCREEN_HEIGHT 480
-#define BUBBLE_R 12
+#define BUBBLE_R 8
 
 typedef struct Bubble {
   gint number;

@@ -7,6 +7,7 @@
 #include "bubble.h"
 
 static GList *bubbles = NULL;
+static ClutterActor *group = NULL;
 static gint main_id;
 
 static gboolean
@@ -18,6 +19,7 @@ main_loop (gpointer data)
   count = g_list_length (bubbles);
   for (i = 0; i < count; i++) {
     tmp = g_list_nth_data (bubbles, i);
+    
     if (tmp->y <= BUBBLE_R 
         || tmp->y >= SCREEN_HEIGHT - BUBBLE_R) {
 
@@ -45,8 +47,12 @@ load_bubbles (gint number)
 {
   gint i;
 
-  for (i = 0; i < number; i++) 
-    bubbles = g_list_prepend (bubbles, bubblechain_bubble_new (i));
+  Bubble *tmp = NULL;
+  for (i = 0; i < number; i++) {
+    tmp = bubblechain_bubble_new (i);
+    clutter_container_add_actor (CLUTTER_CONTAINER (group), tmp->actor);
+    bubbles = g_list_prepend (bubbles, tmp);
+  }
 }
 
 int
@@ -58,6 +64,8 @@ main (gint argc, gchar **argv)
   GtkWidget *clutter_widget;
   ClutterActor *stage;
   ClutterColor stage_color = {0x00, 0x00, 0x00, 0xff};
+
+  group = clutter_group_new ();
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (window), "BubbleChain");
@@ -73,13 +81,9 @@ main (gint argc, gchar **argv)
     
   gtk_container_add (GTK_CONTAINER (window), clutter_widget);
 
-  gint i;
-  Bubble *tmp = NULL;
-  for (i = 0; i < num; i++) {
-    tmp = g_list_nth_data (bubbles, i);
-    clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
-                                 CLUTTER_ACTOR (tmp->actor));
-  }
+  clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
+                               CLUTTER_ACTOR (group));
+
   
   main_id = g_timeout_add (20, (GSourceFunc) main_loop, NULL);
 

@@ -1,22 +1,27 @@
 #include <clutter/clutter.h>
 #include <cairo.h>
 #include <math.h>
+#include <time.h>
 
 #include "bubble.h"
 
-Bubble*
-bubblechain_bubble_new (gint num)
+static ClutterActor *
+create_bubble (int num) 
 {
-  Bubble *bubble = g_new (Bubble*, 1);
-  bubble->number = num;
-  bubble->radius = BUBBLE_R;
-  bubble->actor = clutter_cairo_texture_new (BUBBLE_R*2, BUBBLE_R*2);
-  bubble->x = rand () % SCREEN_WIDTH - BUBBLE_R;
-  bubble->y = rand () % SCREEN_HEIGHT - BUBBLE_R;
+  ClutterActor *actor;
+  gint x,y;
+  
+  actor = clutter_cairo_texture_new (BUBBLE_R*2, BUBBLE_R*2);
+  srand (time (NULL) + num);
+  x = rand () % 640;
+  srand (time (NULL) + num);
+  y = rand () % 480;
+
+  printf ("x=%d,y=%d \n", x, y);
 
   cairo_t *cr;
   cairo_pattern_t *pattern;
-  cr = clutter_cairo_texture_create (CLUTTER_CAIRO_TEXTURE (bubble->actor));
+  cr = clutter_cairo_texture_create (CLUTTER_CAIRO_TEXTURE (actor));
   
   cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
   cairo_paint (cr);
@@ -48,20 +53,31 @@ bubblechain_bubble_new (gint num)
   cairo_set_source (cr, pattern);
   cairo_fill (cr);
   
-  cairo_pattern_destroy (pattern);
-  
+  cairo_pattern_destroy (pattern); 
   cairo_destroy (cr);
 
-  clutter_actor_set_position (CLUTTER_ACTOR (bubble->actor),
-                              bubble->x, bubble->y);
+  clutter_actor_set_position (CLUTTER_ACTOR (actor), (gfloat)x, (gfloat)y);
+
+  return actor;
+}
+
+Bubble*
+bubblechain_bubble_new (gint num)
+{
+  Bubble *bubble = g_new (Bubble, 1);
+
+  bubble->number = num;
+  bubble->radius = BUBBLE_R;
+  bubble->actor = create_bubble (num);
+
   srand (time (NULL));
   float dir = ((float) (rand () % 4500) / 100) * (M_PI / 360);
   if (bubble->number % 2 != 0) {
-    bubble->hspeed = 3 * sin (dir);
-    bubble->vspeed = 3 * cos (dir);
+    bubble->hspeed = 2 * sin (dir);
+    bubble->vspeed = 2 * cos (dir);
   } else {
-    bubble->hspeed = 3 * cos (dir);
-    bubble->vspeed = 3 * sin (dir);
+    bubble->hspeed = 2 * cos (dir);
+    bubble->vspeed = 2 * sin (dir);
   }
 
   return bubble;

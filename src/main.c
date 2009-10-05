@@ -17,16 +17,15 @@ main_loop (gpointer data)
   gint i, j, count, c_count;
   Bubble *tmp = NULL;
   Bubble *b_tmp = NULL;
-
   gfloat dist;
+
   count = g_list_length (bubbles);
   for (i = 0; i < count; i++) {
     tmp = g_list_nth_data (bubbles, i);
-   
-    if (tmp->bursted)
-      return TRUE;
 
-    if (tmp->y <= BUBBLE_R 
+    if (!tmp)
+      return TRUE;
+    if (tmp->y <= tmp->radius
         || tmp->y >= SCREEN_HEIGHT - tmp->radius) {
 
       tmp->vspeed = -tmp->vspeed;
@@ -34,7 +33,7 @@ main_loop (gpointer data)
            ? SCREEN_HEIGHT - (tmp->radius * 2) : tmp->radius * 2);
     }
 
-    if (tmp->x <= BUBBLE_R 
+    if (tmp->x <= tmp->radius 
         || tmp->x >= SCREEN_WIDTH - tmp->radius) {
 
       tmp->hspeed = -tmp->hspeed;
@@ -54,12 +53,11 @@ main_loop (gpointer data)
                         + pow ((b_tmp->y_c - tmp->y_c), 2)));
       if (dist <= (b_tmp->radius + tmp->radius)) {
         tmp->bursted = TRUE;
-        //printf ("\n\nbursted , distance : %f, rule %f", dist, rule);
-        //bursted_bubbles = g_list_prepend (bursted_bubbles, tmp);
-        //bubbles = g_list_delete_link (bubbles, tmp);
+        bursted_bubbles = g_list_prepend (bursted_bubbles, tmp);
+        clutter_actor_hide (tmp->actor);
+        bubbles = g_list_remove (bubbles, tmp);
       }      
     }
-
   }
 
   return TRUE;

@@ -63,8 +63,12 @@ Bubble*
 bubblechain_bubble_new (gint num, gint type)
 {
   Bubble *bubble = g_new (Bubble, 1);
-
+  bubble->x = 0.0;
+  bubble->y = 0.0;
+  bubble->x_c = 0.0;
+  bubble->y_c = 0.0;
   bubble->number = num;
+
   if (type == BUBBLE_BURSTED) {
     bubble->radius = BUBBLE_R * 5;
     bubble->bursted = TRUE;
@@ -72,9 +76,10 @@ bubblechain_bubble_new (gint num, gint type)
     bubble->radius = BUBBLE_R;
     bubble->bursted = FALSE;
   }
-  create_bubble (bubble);
 
+  create_bubble (bubble);
   clutter_actor_get_position (bubble->actor, &bubble->x, &bubble->y);
+
   srand (time (NULL) + num);
   float dir = ((float) (rand () % 4500) / 100) * (M_PI / 360);
   if (bubble->number % 2 != 0) {
@@ -86,4 +91,12 @@ bubblechain_bubble_new (gint num, gint type)
   }
 
   return bubble;
+}
+
+void
+bubblechain_bubble_move (Bubble *bubble, gfloat x, gfloat y)
+{
+  clutter_actor_set_position (bubble->actor, x, y);
+  bubble->x_c = bubble->x - bubble->radius;
+  bubble->y_c = bubble->y - bubble->radius;
 }

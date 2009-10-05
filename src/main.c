@@ -21,19 +21,19 @@ main_loop (gpointer data)
     tmp = g_list_nth_data (bubbles, i);
     
     if (tmp->y <= BUBBLE_R 
-        || tmp->y >= SCREEN_HEIGHT - BUBBLE_R) {
+        || tmp->y >= SCREEN_HEIGHT - tmp->radius) {
 
       tmp->vspeed = -tmp->vspeed;
       tmp->y = (tmp->y > SCREEN_HEIGHT / 2 
-           ? SCREEN_HEIGHT - (BUBBLE_R * 2) : BUBBLE_R * 2);
+           ? SCREEN_HEIGHT - (tmp->radius * 2) : tmp->radius * 2);
     }
 
     if (tmp->x <= BUBBLE_R 
-        || tmp->x >= SCREEN_WIDTH - BUBBLE_R) {
+        || tmp->x >= SCREEN_WIDTH - tmp->radius) {
 
       tmp->hspeed = -tmp->hspeed;
       tmp->x = (tmp->x > SCREEN_WIDTH / 2 
-           ? SCREEN_WIDTH - (BUBBLE_R * 2) : BUBBLE_R * 2);
+           ? SCREEN_WIDTH - (tmp->radius * 2) : tmp->radius * 2);
     }
 
     tmp->x += tmp->hspeed;
@@ -49,7 +49,7 @@ load_bubbles (gint number)
 
   Bubble *tmp = NULL;
   for (i = 0; i < number; i++) {
-    tmp = bubblechain_bubble_new (i);
+    tmp = bubblechain_bubble_new (i, BUBBLE_NORMAL);
     clutter_container_add_actor (CLUTTER_CONTAINER (group), tmp->actor);
     bubbles = g_list_prepend (bubbles, tmp);
   }
@@ -59,11 +59,11 @@ static gboolean
 on_button_press (ClutterActor *actor, ClutterEvent *event, gpointer data)
 {
   ClutterButtonEvent *ev = (ClutterButtonEvent*)event;
-  Bubble *new = bubblechain_bubble_new (-1);
+  Bubble *new = bubblechain_bubble_new (-1, BUBBLE_BURSTED);
 
   clutter_container_add_actor (CLUTTER_CONTAINER (actor), new->actor);
   clutter_actor_set_position (new->actor, ev->x, ev->y);
-  clutter_actor_set_size (new->actor, BUBBLE_R *4, BUBBLE_R *4);
+  //clutter_actor_set_size (new->actor, BUBBLE_R *4, BUBBLE_R *4);
   return FALSE;
 }
 
@@ -115,8 +115,8 @@ main (gint argc, gchar **argv)
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
                                CLUTTER_ACTOR (group));
   
-  big_bubble = bubblechain_bubble_new (1);
-  clutter_actor_set_size (big_bubble->actor, BUBBLE_R * 4, BUBBLE_R * 4);
+  big_bubble = bubblechain_bubble_new (1, BUBBLE_BURSTED);
+  //clutter_actor_set_size (big_bubble->actor, bubble->radius * 4, bubble->radius * 4);
   clutter_actor_set_position (big_bubble->actor, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), big_bubble->actor);
 

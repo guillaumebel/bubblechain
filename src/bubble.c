@@ -5,16 +5,16 @@
 
 #include "bubble.h"
 
-static ClutterActor *
-create_bubble (int num) 
+static void
+create_bubble (Bubble* bubble) 
 {
   ClutterActor *actor;
   gint x,y;
   
-  actor = clutter_cairo_texture_new (BUBBLE_R*2, BUBBLE_R*2);
-  srand (time (NULL) + num);
+  actor = clutter_cairo_texture_new (bubble->radius*2, bubble->radius*2);
+  srand (time (NULL) + bubble->number);
   x = rand () % 640;
-  srand (time (NULL) + num);
+  srand (time (NULL) + bubble->number);
   y = rand () % 480;
 
   cairo_t *cr;
@@ -25,10 +25,10 @@ create_bubble (int num)
   cairo_paint (cr);
   cairo_set_operator (cr, CAIRO_OPERATOR_ADD);
   
-  cairo_arc (cr, BUBBLE_R, BUBBLE_R, BUBBLE_R, 0.0, 2*M_PI);
+  cairo_arc (cr, bubble->radius, bubble->radius, bubble->radius, 0.0, 2*M_PI);
   
-  pattern = cairo_pattern_create_radial (BUBBLE_R, BUBBLE_R, 0,
-                                         BUBBLE_R, BUBBLE_R, BUBBLE_R);
+  pattern = cairo_pattern_create_radial (bubble->radius, bubble->radius, 0,
+                                         bubble->radius, bubble->radius, bubble->radius);
   cairo_pattern_add_color_stop_rgba (pattern, 0, 0.88, 0.95, 0.99, 0.1);
   cairo_pattern_add_color_stop_rgba (pattern, 0.6, 0.88, 0.95, 0.99, 0.1);
   cairo_pattern_add_color_stop_rgba (pattern, 0.8, 0.67, 0.83, 0.91, 0.2);
@@ -40,7 +40,7 @@ create_bubble (int num)
   
   cairo_pattern_destroy (pattern);
   
-  pattern = cairo_pattern_create_linear (0, 0, BUBBLE_R*2, BUBBLE_R*2);
+  pattern = cairo_pattern_create_linear (0, 0, bubble->radius*2, bubble->radius*2);
   cairo_pattern_add_color_stop_rgba (pattern, 0.0, 1.0, 1.0, 1.0, 0.0);
   cairo_pattern_add_color_stop_rgba (pattern, 0.15, 1.0, 1.0, 1.0, 0.95);
   cairo_pattern_add_color_stop_rgba (pattern, 0.3, 1.0, 1.0, 1.0, 0.0);
@@ -56,17 +56,24 @@ create_bubble (int num)
 
   clutter_actor_set_position (CLUTTER_ACTOR (actor), (gfloat)x, (gfloat)y);
 
-  return actor;
+  bubble->actor = actor;
 }
 
 Bubble*
-bubblechain_bubble_new (gint num)
+bubblechain_bubble_new (gint num, gint type)
 {
   Bubble *bubble = g_new (Bubble, 1);
 
   bubble->number = num;
-  bubble->radius = BUBBLE_R;
-  bubble->actor = create_bubble (num);
+  if (type == BUBBLE_BURSTED) {
+    bubble->radius = BUBBLE_R * 5;
+    bubble->bursted = TRUE;
+  } else {
+    bubble->radius = BUBBLE_R;
+    bubble->bursted = FALSE;
+  }
+  create_bubble (bubble);
+
   clutter_actor_get_position (bubble->actor, &bubble->x, &bubble->y);
   srand (time (NULL) + num);
   float dir = ((float) (rand () % 4500) / 100) * (M_PI / 360);

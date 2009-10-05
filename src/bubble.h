@@ -7,14 +7,18 @@
 #define SCREEN_HEIGHT 480
 #define BUBBLE_R 8
 
+#define BUBBLE_NORMAL 0
+#define BUBBLE_BURSTED 1
+
 typedef struct Bubble {
   gint number;
   ClutterActor *actor;
   gint radius;
   gfloat x, y;
   gfloat vspeed, hspeed;
+  gboolean bursted;
 } Bubble;
 
-Bubble* bubblechain_bubble_new (gint num);
+Bubble* bubblechain_bubble_new (gint num, gint type);
 
 #endif

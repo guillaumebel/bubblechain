@@ -97,6 +97,6 @@ void
 bubblechain_bubble_move (Bubble *bubble, gfloat x, gfloat y)
 {
   clutter_actor_set_position (bubble->actor, x, y);
-  bubble->x_c = bubble->x - bubble->radius;
-  bubble->y_c = bubble->y - bubble->radius;
+  bubble->x_c = x + bubble->radius;
+  bubble->y_c = y + bubble->radius;
 }

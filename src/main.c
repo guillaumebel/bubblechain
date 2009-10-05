@@ -18,7 +18,7 @@ main_loop (gpointer data)
   Bubble *tmp = NULL;
   Bubble *b_tmp = NULL;
 
-  gfloat dist, rule, delta;
+  gfloat dist;
   count = g_list_length (bubbles);
   for (i = 0; i < count; i++) {
     tmp = g_list_nth_data (bubbles, i);
@@ -49,12 +49,12 @@ main_loop (gpointer data)
     c_count = g_list_length (bursted_bubbles);
     for (j = 0; j < c_count; j++) {
       b_tmp = g_list_nth_data (bursted_bubbles, j);
-
-      dist = fabs (sqrt (pow (b_tmp->x_c - tmp->x_c, 2)
-                        + pow (b_tmp->y_c - tmp->y_c, 2)));
-      //printf ("distance %f", dist);
+      
+      dist = fabs (sqrt (pow ((b_tmp->x_c - tmp->x_c), 2)
+                        + pow ((b_tmp->y_c - tmp->y_c), 2)));
       if (dist <= (b_tmp->radius + tmp->radius)) {
         tmp->bursted = TRUE;
+        //printf ("\n\nbursted , distance : %f, rule %f", dist, rule);
         //bursted_bubbles = g_list_prepend (bursted_bubbles, tmp);
         //bubbles = g_list_delete_link (bubbles, tmp);
       }      

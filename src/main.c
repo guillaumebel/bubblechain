@@ -10,6 +10,7 @@ static GList *bubbles = NULL;
 static GList *bursted_bubbles = NULL;
 static ClutterActor *group = NULL;
 static gint main_id;
+static ClutterActor *stage = NULL;
 
 static gboolean
 main_loop (gpointer data)
@@ -17,6 +18,7 @@ main_loop (gpointer data)
   gint i, j, count, c_count;
   Bubble *tmp = NULL;
   Bubble *b_tmp = NULL;
+  Bubble *nb_tmp = NULL;
   gfloat dist;
 
   count = g_list_length (bubbles);
@@ -53,7 +55,17 @@ main_loop (gpointer data)
                         + pow ((b_tmp->y_c - tmp->y_c), 2)));
       if (dist <= (b_tmp->radius + tmp->radius)) {
         tmp->bursted = TRUE;
-        bursted_bubbles = g_list_prepend (bursted_bubbles, tmp);
+        nb_tmp = bubblechain_bubble_new (-1, BUBBLE_BURSTED);
+        bubblechain_bubble_move (nb_tmp, 
+                                tmp->x_c - nb_tmp->radius, 
+                                tmp->y_c - nb_tmp->radius);
+        clutter_actor_set_scale (nb_tmp->actor, 0.3, 0.3);
+        clutter_container_add_actor (CLUTTER_CONTAINER (stage), nb_tmp->actor);
+        clutter_actor_animate (nb_tmp->actor, CLUTTER_EASE_OUT_BOUNCE, 900,
+                               "scale-x", 1.0, "scale-y", 1.0,
+                               "fixed::scale-gravity", CLUTTER_GRAVITY_CENTER,
+                               NULL);
+        bursted_bubbles = g_list_prepend (bursted_bubbles, nb_tmp);
         clutter_actor_hide (tmp->actor);
         bubbles = g_list_remove (bubbles, tmp);
       }      
@@ -108,7 +120,6 @@ main (gint argc, gchar **argv)
 
   GtkWidget *window;
   GtkWidget *clutter_widget;
-  ClutterActor *stage;
   ClutterActor *background;
   ClutterColor stage_color = {0x00, 0x00, 0x00, 0xff};
   Bubble *big_bubble;
@@ -138,14 +149,17 @@ main (gint argc, gchar **argv)
                                CLUTTER_ACTOR (group));
   
   big_bubble = bubblechain_bubble_new (1, BUBBLE_BURSTED);
-  clutter_actor_set_position (big_bubble->actor, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+  clutter_actor_set_position (big_bubble->actor, 
+                              SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), big_bubble->actor);
 
   main_id = g_timeout_add (20, (GSourceFunc) main_loop, NULL);
 
   g_signal_connect (window, "hide", G_CALLBACK (gtk_main_quit), NULL);
-  g_signal_connect (stage, "button-press-event", G_CALLBACK (on_button_press), big_bubble);
-  g_signal_connect (stage, "motion-event", G_CALLBACK (on_motion_event), big_bubble);
+  g_signal_connect (stage, "button-press-event", 
+                    G_CALLBACK (on_button_press), big_bubble);
+  g_signal_connect (stage, "motion-event", 
+                    G_CALLBACK (on_motion_event), big_bubble);
 
   gtk_widget_show_all (window);
 

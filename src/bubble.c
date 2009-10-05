@@ -28,7 +28,8 @@ create_bubble (Bubble* bubble)
   cairo_arc (cr, bubble->radius, bubble->radius, bubble->radius, 0.0, 2*M_PI);
   
   pattern = cairo_pattern_create_radial (bubble->radius, bubble->radius, 0,
-                                         bubble->radius, bubble->radius, bubble->radius);
+                                         bubble->radius, bubble->radius, 
+                                         bubble->radius);
   cairo_pattern_add_color_stop_rgba (pattern, 0, 0.88, 0.95, 0.99, 0.1);
   cairo_pattern_add_color_stop_rgba (pattern, 0.6, 0.88, 0.95, 0.99, 0.1);
   cairo_pattern_add_color_stop_rgba (pattern, 0.8, 0.67, 0.83, 0.91, 0.2);
@@ -40,7 +41,8 @@ create_bubble (Bubble* bubble)
   
   cairo_pattern_destroy (pattern);
   
-  pattern = cairo_pattern_create_linear (0, 0, bubble->radius*2, bubble->radius*2);
+  pattern = cairo_pattern_create_linear (0, 0, 
+                                         bubble->radius*2, bubble->radius*2);
   cairo_pattern_add_color_stop_rgba (pattern, 0.0, 1.0, 1.0, 1.0, 0.0);
   cairo_pattern_add_color_stop_rgba (pattern, 0.15, 1.0, 1.0, 1.0, 0.95);
   cairo_pattern_add_color_stop_rgba (pattern, 0.3, 1.0, 1.0, 1.0, 0.0);

@@ -17,16 +17,15 @@ main_loop (gpointer data)
 {
   gint i, j, count, c_count;
   Bubble *tmp = NULL;
-  Bubble *b_tmp = NULL;
-  Bubble *nb_tmp = NULL;
+  Bubble *bursted_tmp = NULL;
+  Bubble *new_bursted_tmp = NULL;
   gfloat dist;
 
   count = g_list_length (bubbles);
+
   for (i = 0; i < count; i++) {
     tmp = g_list_nth_data (bubbles, i);
 
-    if (!tmp)
-      return TRUE;
     if (tmp->y <= tmp->radius
         || tmp->y >= SCREEN_HEIGHT - tmp->radius) {
 
@@ -49,26 +48,30 @@ main_loop (gpointer data)
 
     c_count = g_list_length (bursted_bubbles);
     for (j = 0; j < c_count; j++) {
-      b_tmp = g_list_nth_data (bursted_bubbles, j);
+      bursted_tmp = g_list_nth_data (bursted_bubbles, j);
       
-      dist = fabs (sqrt (pow ((b_tmp->x_c - tmp->x_c), 2)
-                        + pow ((b_tmp->y_c - tmp->y_c), 2)));
-      if (dist <= (b_tmp->radius + tmp->radius)) {
+      dist = fabs (sqrt (pow ((bursted_tmp->x_c - tmp->x_c), 2)
+                        + pow ((bursted_tmp->y_c - tmp->y_c), 2)));
+      if (dist <= (bursted_tmp->radius + tmp->radius)) {
         tmp->bursted = TRUE;
-        nb_tmp = bubblechain_bubble_new (-1, BUBBLE_BURSTED);
-        bubblechain_bubble_move (nb_tmp, 
-                                tmp->x_c - nb_tmp->radius, 
-                                tmp->y_c - nb_tmp->radius);
-        clutter_actor_set_scale (nb_tmp->actor, 0.3, 0.3);
-        clutter_container_add_actor (CLUTTER_CONTAINER (stage), nb_tmp->actor);
-        clutter_actor_animate (nb_tmp->actor, CLUTTER_EASE_OUT_BOUNCE, 900,
+        new_bursted_tmp = bubblechain_bubble_new (-j, BUBBLE_BURSTED);
+        bubblechain_bubble_move (new_bursted_tmp, 
+                                tmp->x_c - new_bursted_tmp->radius, 
+                                tmp->y_c - new_bursted_tmp->radius);
+        clutter_actor_set_scale (new_bursted_tmp->actor, 0.3, 0.3);
+        clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
+                                     new_bursted_tmp->actor);
+        clutter_actor_animate (new_bursted_tmp->actor, 
+                               CLUTTER_EASE_OUT_BOUNCE, 900,
                                "scale-x", 1.0, "scale-y", 1.0,
                                "fixed::scale-gravity", CLUTTER_GRAVITY_CENTER,
                                NULL);
-        bursted_bubbles = g_list_prepend (bursted_bubbles, nb_tmp);
+        bursted_bubbles = g_list_prepend (bursted_bubbles, new_bursted_tmp);
         clutter_actor_hide (tmp->actor);
         bubbles = g_list_remove (bubbles, tmp);
-      }      
+        count--;
+        break;
+      }
     }
   }
 
@@ -142,7 +145,7 @@ main (gint argc, gchar **argv)
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), background);
   clutter_actor_lower_bottom (background);
 
-  gint num = 10;
+  gint num = 65;
   load_bubbles (num);
 
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), 

@@ -13,6 +13,18 @@ static gint main_id;
 static ClutterActor *stage = NULL;
 
 static gboolean
+burst_bubble (gpointer data)
+{
+  Bubble *tmp = (Bubble *)data;
+
+  clutter_actor_animate (tmp->actor, CLUTTER_EASE_IN_BOUNCE, 700,
+                         "scale-x", 0.0, "scale-y", 0.0,
+                         "fixed::scale-gravity", CLUTTER_GRAVITY_CENTER,
+                         NULL);
+  bursted_bubbles = g_list_remove (bursted_bubbles, tmp);
+}
+
+static gboolean
 main_loop (gpointer data)
 {
   gint i, j, count, c_count;
@@ -70,6 +82,7 @@ main_loop (gpointer data)
         clutter_actor_hide (tmp->actor);
         bubbles = g_list_remove (bubbles, tmp);
         count--;
+        g_timeout_add (5000, (GSourceFunc) burst_bubble, new_bursted_tmp);
         break;
       }
     }
@@ -82,8 +95,8 @@ static void
 load_bubbles (gint number) 
 {
   gint i;
-
   Bubble *tmp = NULL;
+
   for (i = 0; i < number; i++) {
     tmp = bubblechain_bubble_new (i, BUBBLE_NORMAL);
     clutter_container_add_actor (CLUTTER_CONTAINER (group), tmp->actor);

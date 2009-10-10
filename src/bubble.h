@@ -5,7 +5,7 @@
 
 #define SCREEN_WIDTH 680
 #define SCREEN_HEIGHT 480
-#define BUBBLE_R 8
+#define BUBBLE_R 7
 
 #define BUBBLE_NORMAL 0
 #define BUBBLE_BURSTED 1

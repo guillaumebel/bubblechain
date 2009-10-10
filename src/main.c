@@ -82,7 +82,7 @@ main_loop (gpointer data)
         clutter_actor_hide (tmp->actor);
         bubbles = g_list_remove (bubbles, tmp);
         count--;
-        g_timeout_add (5000, (GSourceFunc) burst_bubble, new_bursted_tmp);
+        g_timeout_add (2500, (GSourceFunc) burst_bubble, new_bursted_tmp);
         break;
       }
     }
@@ -114,6 +114,7 @@ on_button_press (ClutterActor *actor, ClutterEvent *event, gpointer data)
   bubblechain_bubble_move (new, ev->x, ev->y);
 
   bursted_bubbles = g_list_prepend (bursted_bubbles, new);
+  g_timeout_add (2500, (GSourceFunc) burst_bubble, new);
   return FALSE;
 }
 

@@ -5,12 +5,29 @@
 #include <math.h>
 
 #include "bubble.h"
+#define LEVEL_1 1
+#define LEVEL_2 2
+#define LEVEL_3 4
+#define LEVEL_4 6
+#define LEVEL_5 10
+#define LEVEL_6 15
+#define LEVEL_7 18
+#define LEVEL_8 22
+#define LEVEL_9 30
+#define LEVEL_10 37
+#define LEVEL_11 48
+#define LEVEL_12 55
 
+static gint num_bubbles = 5;
+static gint current_level;
+static gint score;
 static GList *bubbles = NULL;
 static GList *bursted_bubbles = NULL;
 static ClutterActor *group = NULL;
 static gint main_id;
 static ClutterActor *stage = NULL;
+static ClutterColor color_success = {0x70,0x70,0x70,0xff};
+static ClutterColor color_normal = {0x11,0x11,0x11,0xff};
 
 static gboolean
 burst_bubble (gpointer data)
@@ -22,6 +39,28 @@ burst_bubble (gpointer data)
                          "fixed::scale-gravity", CLUTTER_GRAVITY_CENTER,
                          NULL);
   bursted_bubbles = g_list_remove (bursted_bubbles, tmp);
+}
+
+static void
+load_bubbles (gint number) 
+{
+  gint i, count;
+  Bubble *tmp = NULL;
+  count = g_list_length (bubbles);
+  for (i = 0; i < count; i++) {
+    tmp = g_list_nth_data (bubbles, i);
+    bubbles = g_list_remove (bubbles, tmp);
+    clutter_actor_hide (tmp->actor);
+    count--;
+  }
+ 
+  score = 0;
+
+  for (i = 0; i < number; i++) {
+    tmp = bubblechain_bubble_new (i, BUBBLE_NORMAL);
+    clutter_container_add_actor (CLUTTER_CONTAINER (group), tmp->actor);
+    bubbles = g_list_prepend (bubbles, tmp);
+  }
 }
 
 static gboolean
@@ -82,26 +121,31 @@ main_loop (gpointer data)
         clutter_actor_hide (tmp->actor);
         bubbles = g_list_remove (bubbles, tmp);
         count--;
-        g_timeout_add (2500, (GSourceFunc) burst_bubble, new_bursted_tmp);
+        score++;
+        g_timeout_add (3500, (GSourceFunc) burst_bubble, new_bursted_tmp);
         break;
       }
     }
   }
 
-  return TRUE;
-}
-
-static void
-load_bubbles (gint number) 
-{
-  gint i;
-  Bubble *tmp = NULL;
-
-  for (i = 0; i < number; i++) {
-    tmp = bubblechain_bubble_new (i, BUBBLE_NORMAL);
-    clutter_container_add_actor (CLUTTER_CONTAINER (group), tmp->actor);
-    bubbles = g_list_prepend (bubbles, tmp);
+  if (score >= current_level) {
+    clutter_actor_animate (stage, CLUTTER_LINEAR, 1200,
+                            "color", &color_success,
+                            NULL);
   }
+  c_count = g_list_length (bursted_bubbles);
+  if (c_count == 0) {
+    if (score >= current_level) {
+      printf ("\n Scored: %d / %d", score, num_bubbles);
+      current_level++;
+      num_bubbles += 5;
+      load_bubbles (num_bubbles);
+      clutter_stage_set_color (stage, &color_normal); 
+    }
+  }
+    
+
+  return TRUE;
 }
 
 static gboolean
@@ -114,7 +158,7 @@ on_button_press (ClutterActor *actor, ClutterEvent *event, gpointer data)
   bubblechain_bubble_move (new, ev->x, ev->y);
 
   bursted_bubbles = g_list_prepend (bursted_bubbles, new);
-  g_timeout_add (2500, (GSourceFunc) burst_bubble, new);
+  g_timeout_add (3500, (GSourceFunc) burst_bubble, new);
   return FALSE;
 }
 
@@ -137,31 +181,22 @@ main (gint argc, gchar **argv)
 
   GtkWidget *window;
   GtkWidget *clutter_widget;
-  ClutterActor *background;
-  ClutterColor stage_color = {0x00, 0x00, 0x00, 0xff};
   Bubble *big_bubble;
 
   group = clutter_group_new ();
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (window), "BubbleChain");
-  gtk_window_set_default_size (GTK_WINDOW (window), 680, 480);
+  gtk_window_set_default_size (GTK_WINDOW (window), SCREEN_WIDTH, SCREEN_HEIGHT);
 
   clutter_widget = gtk_clutter_embed_new ();
   gtk_container_add (GTK_CONTAINER (window), clutter_widget);
   stage = gtk_clutter_embed_get_stage (GTK_CLUTTER_EMBED (clutter_widget));
-  clutter_stage_set_color (CLUTTER_STAGE (stage), &stage_color);
+  clutter_stage_set_color (CLUTTER_STAGE (stage), &color_normal);
   clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
 
-  background = clutter_rectangle_new_with_color (&stage_color);
-  clutter_actor_set_position (background, 0, 0);
-  clutter_actor_set_size (background, 680,480);
-  clutter_container_add_actor (CLUTTER_CONTAINER (stage), background);
-  clutter_actor_lower_bottom (background);
-
-  gint num = 65;
-  load_bubbles (num);
-
+  load_bubbles (num_bubbles);
+  current_level = LEVEL_1;
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
                                CLUTTER_ACTOR (group));
   

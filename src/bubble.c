@@ -72,7 +72,7 @@ bubblechain_bubble_new (gint num, gint type)
   bubble->number = num;
 
   if (type == BUBBLE_BURSTED) {
-    bubble->radius = BUBBLE_R * 4.5;
+    bubble->radius = BUBBLE_R * 6;
     bubble->bursted = TRUE;
   } else {
     bubble->radius = BUBBLE_R;

@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "bubble.h"
+
 #define LEVEL_1 1
 #define LEVEL_2 2
 #define LEVEL_3 4
@@ -29,8 +30,8 @@ static ClutterActor *group = NULL;
 static gint main_id;
 
 static ClutterActor *stage = NULL;
-static ClutterColor color_success = {0x60,0x60,0x60,0xff};
-static ClutterColor color_normal = {0x11,0x11,0x11,0xff};
+static ClutterColor color_success = {0x00,0x19,0x35,0x99};
+static ClutterColor color_normal = {0x10,0x11,0x10,0xff};
 
 static ClutterActor *score_label;
 static ClutterActor *bubble_count;
@@ -212,6 +213,8 @@ setup_stage (void) {
 
   Bubble *big_bubble;
   ClutterColor text_color = {0x00,0x88,0xFF,0xff};
+
+  clutter_stage_set_user_resizable (CLUTTER_STAGE (stage), FALSE);
   clutter_stage_set_color (CLUTTER_STAGE (stage), &color_normal);
   clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
 
@@ -238,8 +241,6 @@ setup_stage (void) {
                               SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), big_bubble->actor);
 
-
-
   g_signal_connect (stage, "button-press-event", 
                     G_CALLBACK (on_button_press), big_bubble);
   g_signal_connect (stage, "motion-event", 
@@ -260,6 +261,8 @@ main (gint argc, gchar **argv)
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (window), "BubbleChain");
   gtk_window_set_default_size (GTK_WINDOW (window), SCREEN_WIDTH, SCREEN_HEIGHT);
+  gtk_widget_set_size_request (window, SCREEN_WIDTH, SCREEN_HEIGHT);
+  gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
 
   clutter_widget = gtk_clutter_embed_new ();
   gtk_container_add (GTK_CONTAINER (window), clutter_widget);
@@ -270,7 +273,7 @@ main (gint argc, gchar **argv)
   g_signal_connect (window, "hide", G_CALLBACK (gtk_main_quit), NULL);
 
   gtk_widget_show_all (window);
-
   gtk_main ();
+
   return 1;
 }

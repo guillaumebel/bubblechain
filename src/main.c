@@ -22,10 +22,12 @@ static gint num_bubbles = 5;
 static gint current_level;
 static gint hit;
 static gint score;
+
 static GList *bubbles = NULL;
 static GList *bursted_bubbles = NULL;
 static ClutterActor *group = NULL;
 static gint main_id;
+
 static ClutterActor *stage = NULL;
 static ClutterColor color_success = {0x60,0x60,0x60,0xff};
 static ClutterColor color_normal = {0x11,0x11,0x11,0xff};
@@ -129,7 +131,8 @@ main_loop (gpointer data)
                         + pow ((bursted_tmp->y_c - tmp->y_c), 2)));
       if (dist <= (bursted_tmp->radius + tmp->radius)) {
         tmp->bursted = TRUE;
-        new_bursted_tmp = bubblechain_bubble_new (-j, BUBBLE_BURSTED);
+        new_bursted_tmp = 
+          bubblechain_bubble_new_with_color (-j, BUBBLE_BURSTED, tmp->color);
         bubblechain_bubble_move (new_bursted_tmp, 
                                 tmp->x_c - new_bursted_tmp->radius, 
                                 tmp->y_c - new_bursted_tmp->radius);
@@ -181,7 +184,8 @@ static gboolean
 on_button_press (ClutterActor *actor, ClutterEvent *event, gpointer data)
 {
   ClutterButtonEvent *ev = (ClutterButtonEvent*)event;
-  Bubble *new = bubblechain_bubble_new (-1, BUBBLE_BURSTED);
+  Bubble *new = 
+    bubblechain_bubble_new_with_color (-1, BUBBLE_BURSTED, BUBBLE_BLUE);
 
   clutter_container_add_actor (CLUTTER_CONTAINER (actor), new->actor);
   bubblechain_bubble_move (new, ev->x, ev->y);
@@ -228,7 +232,8 @@ setup_stage (void) {
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
                                CLUTTER_ACTOR (group));
   
-  big_bubble = bubblechain_bubble_new (1, BUBBLE_BURSTED);
+  big_bubble = 
+    bubblechain_bubble_new_with_color (1, BUBBLE_BURSTED, BUBBLE_BLUE);
   clutter_actor_set_position (big_bubble->actor, 
                               SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), big_bubble->actor);

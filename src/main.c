@@ -20,14 +20,19 @@
 
 static gint num_bubbles = 5;
 static gint current_level;
+static gint hit;
 static gint score;
 static GList *bubbles = NULL;
 static GList *bursted_bubbles = NULL;
 static ClutterActor *group = NULL;
 static gint main_id;
 static ClutterActor *stage = NULL;
-static ClutterColor color_success = {0x70,0x70,0x70,0xff};
+static ClutterColor color_success = {0x60,0x60,0x60,0xff};
 static ClutterColor color_normal = {0x11,0x11,0x11,0xff};
+
+static ClutterActor *score_label;
+static ClutterActor *bubble_count;
+static ClutterActor *level_label;
 
 static gboolean
 burst_bubble (gpointer data)
@@ -54,14 +59,33 @@ load_bubbles (gint number)
     count--;
   }
  
-  score = 0;
+  hit = 0;
 
   for (i = 0; i < number; i++) {
     tmp = bubblechain_bubble_new (i, BUBBLE_NORMAL);
     clutter_container_add_actor (CLUTTER_CONTAINER (group), tmp->actor);
     bubbles = g_list_prepend (bubbles, tmp);
   }
+
+  gchar *text = g_strdup_printf ("%d bubbles out of %d", current_level, number);
+  clutter_text_set_text (CLUTTER_TEXT (level_label), text);
+  text = g_strdup_printf ("%d", 0);
+  clutter_text_set_text (CLUTTER_TEXT (bubble_count), text);
+  g_free (text);
+
 }
+
+static void
+update_scoreboard (gint new_score)
+{
+  score += new_score * 100;
+  gchar *text = g_strdup_printf ("Score: %d", score);
+  clutter_text_set_text (CLUTTER_TEXT (score_label), text);
+  text = g_strdup_printf ("%d", new_score);
+  clutter_text_set_text (CLUTTER_TEXT (bubble_count), text);
+  g_free (text);
+}
+
 
 static gboolean
 main_loop (gpointer data)
@@ -122,28 +146,33 @@ main_loop (gpointer data)
         bubbles = g_list_remove (bubbles, tmp);
         count--;
         score++;
+        hit++;
+        update_scoreboard (hit);
         g_timeout_add (3500, (GSourceFunc) burst_bubble, new_bursted_tmp);
         break;
       }
     }
   }
 
-  if (score >= current_level) {
+  if (hit == current_level) {
     clutter_actor_animate (stage, CLUTTER_LINEAR, 1200,
-                            "color", &color_success,
-                            NULL);
+                           "color", &color_success,
+                           NULL);
   }
+
   c_count = g_list_length (bursted_bubbles);
   if (c_count == 0) {
-    if (score >= current_level) {
-      printf ("\n Scored: %d / %d", score, num_bubbles);
+    if (hit >= current_level) {
       current_level++;
       num_bubbles += 5;
       load_bubbles (num_bubbles);
-      clutter_stage_set_color (stage, &color_normal); 
+      clutter_actor_animate (stage, CLUTTER_LINEAR, 600,
+                           "color", &color_normal,
+                           NULL);
+
+      hit = 0;
     }
-  }
-    
+  } 
 
   return TRUE;
 }
@@ -174,6 +203,45 @@ on_motion_event (ClutterActor *actor, ClutterEvent *event, gpointer data)
   return FALSE;
 }
 
+static void
+setup_stage (void) {
+
+  Bubble *big_bubble;
+  ClutterColor text_color = {0x00,0x88,0xFF,0xff};
+  clutter_stage_set_color (CLUTTER_STAGE (stage), &color_normal);
+  clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
+
+  score_label = clutter_text_new_full ("Sans Bold 15", "Score:", &text_color);
+  level_label = clutter_text_new_full ("Sans Bold 15", 
+                                       "1 bubbles out of 5", &text_color);
+  bubble_count = clutter_text_new_full ("sans Bold 15",
+                                        "0", &text_color);
+
+  clutter_actor_set_position (score_label, 5,3);
+  clutter_actor_set_position (level_label, SCREEN_WIDTH / 2 -
+                              clutter_actor_get_width (level_label) / 2, 3);
+  clutter_actor_set_position (bubble_count, SCREEN_WIDTH -
+                              clutter_actor_get_width (bubble_count) - 10, 3);
+  clutter_container_add (stage, score_label, bubble_count, level_label, NULL);
+  current_level = LEVEL_1;
+  load_bubbles (num_bubbles);
+  clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
+                               CLUTTER_ACTOR (group));
+  
+  big_bubble = bubblechain_bubble_new (1, BUBBLE_BURSTED);
+  clutter_actor_set_position (big_bubble->actor, 
+                              SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+  clutter_container_add_actor (CLUTTER_CONTAINER (stage), big_bubble->actor);
+
+
+
+  g_signal_connect (stage, "button-press-event", 
+                    G_CALLBACK (on_button_press), big_bubble);
+  g_signal_connect (stage, "motion-event", 
+                    G_CALLBACK (on_motion_event), big_bubble);
+
+}
+
 int
 main (gint argc, gchar **argv)
 {
@@ -181,7 +249,6 @@ main (gint argc, gchar **argv)
 
   GtkWidget *window;
   GtkWidget *clutter_widget;
-  Bubble *big_bubble;
 
   group = clutter_group_new ();
 
@@ -192,26 +259,10 @@ main (gint argc, gchar **argv)
   clutter_widget = gtk_clutter_embed_new ();
   gtk_container_add (GTK_CONTAINER (window), clutter_widget);
   stage = gtk_clutter_embed_get_stage (GTK_CLUTTER_EMBED (clutter_widget));
-  clutter_stage_set_color (CLUTTER_STAGE (stage), &color_normal);
-  clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
 
-  load_bubbles (num_bubbles);
-  current_level = LEVEL_1;
-  clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
-                               CLUTTER_ACTOR (group));
-  
-  big_bubble = bubblechain_bubble_new (1, BUBBLE_BURSTED);
-  clutter_actor_set_position (big_bubble->actor, 
-                              SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-  clutter_container_add_actor (CLUTTER_CONTAINER (stage), big_bubble->actor);
-
+  setup_stage ();
   main_id = g_timeout_add (20, (GSourceFunc) main_loop, NULL);
-
   g_signal_connect (window, "hide", G_CALLBACK (gtk_main_quit), NULL);
-  g_signal_connect (stage, "button-press-event", 
-                    G_CALLBACK (on_button_press), big_bubble);
-  g_signal_connect (stage, "motion-event", 
-                    G_CALLBACK (on_motion_event), big_bubble);
 
   gtk_widget_show_all (window);
 

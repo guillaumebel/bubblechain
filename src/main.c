@@ -6,23 +6,12 @@
 
 #include "bubble.h"
 
-#define LEVEL_1 1
-#define LEVEL_2 2
-#define LEVEL_3 4
-#define LEVEL_4 6
-#define LEVEL_5 10
-#define LEVEL_6 15
-#define LEVEL_7 18
-#define LEVEL_8 22
-#define LEVEL_9 30
-#define LEVEL_10 37
-#define LEVEL_11 48
-#define LEVEL_12 55
-
 static gint num_bubbles = 5;
-static gint current_level;
+static gint current_level = 0;
 static gint hit;
 static gint score;
+static gint level[] = {1, 2, 4, 6, 10, 15, 18, 22, 30, 37, 48, 55};
+static gboolean player_clicked = FALSE;
 
 static GList *bubbles = NULL;
 static GList *bursted_bubbles = NULL;
@@ -52,16 +41,15 @@ burst_bubble (gpointer data)
 static void
 load_bubbles (gint number) 
 {
-  gint i, count;
+  gint i;
   Bubble *tmp = NULL;
-  count = g_list_length (bubbles);
-  for (i = 0; i < count; i++) {
-    tmp = g_list_nth_data (bubbles, i);
-    bubbles = g_list_remove (bubbles, tmp);
+
+  while (bubbles) {
+    tmp = g_list_last (bubbles)->data;
     clutter_actor_hide (tmp->actor);
-    count--;
+    bubbles = g_list_delete_link (bubbles, g_list_last (bubbles));
   }
- 
+
   hit = 0;
 
   for (i = 0; i < number; i++) {
@@ -70,7 +58,7 @@ load_bubbles (gint number)
     bubbles = g_list_prepend (bubbles, tmp);
   }
 
-  gchar *text = g_strdup_printf ("%d bubbles out of %d", current_level, number);
+  gchar *text = g_strdup_printf ("%d bubbles out of %d", level[current_level], number);
   clutter_text_set_text (CLUTTER_TEXT (level_label), text);
   text = g_strdup_printf ("%d", 0);
   clutter_text_set_text (CLUTTER_TEXT (bubble_count), text);
@@ -158,15 +146,15 @@ main_loop (gpointer data)
     }
   }
 
-  if (hit == current_level) {
+  if (hit == level[current_level]) {
     clutter_actor_animate (stage, CLUTTER_LINEAR, 1200,
                            "color", &color_success,
                            NULL);
   }
 
   c_count = g_list_length (bursted_bubbles);
-  if (c_count == 0) {
-    if (hit >= current_level) {
+  if (c_count == 0 && player_clicked) {
+    if (hit >= level[current_level]) {
       current_level++;
       num_bubbles += 5;
       load_bubbles (num_bubbles);
@@ -175,7 +163,11 @@ main_loop (gpointer data)
                            NULL);
 
       hit = 0;
+    } else {
+      load_bubbles (num_bubbles);
     }
+    player_clicked = FALSE;
+    clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
   } 
 
   return TRUE;
@@ -193,18 +185,22 @@ on_button_press (ClutterActor *actor, ClutterEvent *event, gpointer data)
 
   bursted_bubbles = g_list_prepend (bursted_bubbles, new);
   g_timeout_add (3500, (GSourceFunc) burst_bubble, new);
+
+  player_clicked = TRUE;
+  clutter_stage_show_cursor (CLUTTER_STAGE (stage));
   return FALSE;
 }
 
 static gboolean
 on_motion_event (ClutterActor *actor, ClutterEvent *event, gpointer data)
 {
-  Bubble *tmp = (Bubble*)data;
-  ClutterMotionEvent *mev = (ClutterMotionEvent *) event;
-  clutter_actor_set_position (tmp->actor, mev->x, mev->y);
-  tmp->x = mev->x;
-  tmp->y = mev->y;
-
+  if (!player_clicked) {
+    Bubble *tmp = (Bubble*)data;
+    ClutterMotionEvent *mev = (ClutterMotionEvent *) event;
+    clutter_actor_set_position (tmp->actor, mev->x, mev->y);
+    tmp->x = mev->x;
+    tmp->y = mev->y;
+  }
   return FALSE;
 }
 
@@ -229,8 +225,12 @@ setup_stage (void) {
                               clutter_actor_get_width (level_label) / 2, 3);
   clutter_actor_set_position (bubble_count, SCREEN_WIDTH -
                               clutter_actor_get_width (bubble_count) - 10, 3);
-  clutter_container_add (stage, score_label, bubble_count, level_label, NULL);
-  current_level = LEVEL_1;
+  clutter_container_add (CLUTTER_CONTAINER (stage), 
+                         CLUTTER_ACTOR (score_label),
+                         CLUTTER_ACTOR (bubble_count),
+                         CLUTTER_ACTOR (level_label),
+                         NULL);
+
   load_bubbles (num_bubbles);
   clutter_container_add_actor (CLUTTER_CONTAINER (stage), 
                                CLUTTER_ACTOR (group));
